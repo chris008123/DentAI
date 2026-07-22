@@ -8,6 +8,7 @@ import SearchInput from '@/components/ui/SearchInput'
 import ConfirmationDialog from '@/components/ui/ConfirmationDialog'
 import PatientTable from '@/components/patients/PatientTable'
 import PatientForm from '@/components/patients/PatientForm'
+import ErrorState from '@/components/common/ErrorState'
 import { useApi } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
 import { PatientService } from '@/services/PatientService'
@@ -32,7 +33,7 @@ export default function PatientsList() {
     () => PatientService.list({ search: debouncedSearch, sort, page, pageSize: 5 }),
     [debouncedSearch, sort, page]
   )
-  const { data, loading, refetch } = useApi(fetchPatients)
+  const { data, loading, error, refetch } = useApi(fetchPatients)
 
   const handleSortChange = (key) => {
     setSort((prev) =>
@@ -103,20 +104,30 @@ export default function PatientsList() {
           />
         </Card.Header>
         <Card.Body className="px-0 py-0">
-          <div className="px-2">
-            <PatientTable
-              patients={data?.items ?? []}
-              loading={loading}
-              sort={sort}
-              onSortChange={handleSortChange}
-              onRowClick={(row) => navigate(ROUTES.PATIENT_PROFILE(row.id))}
-              onEdit={openEdit}
-              onDelete={setDeleteTarget}
-              pagination={
-                data ? { page: data.page, pageCount: data.pageCount, onPageChange: setPage } : undefined
-              }
-            />
-          </div>
+          {error ? (
+            <div className="px-3 py-3">
+              <ErrorState
+                title="Unable to load patients"
+                message={error.message}
+                onRetry={refetch}
+              />
+            </div>
+          ) : (
+            <div className="px-2">
+              <PatientTable
+                patients={data?.items ?? []}
+                loading={loading}
+                sort={sort}
+                onSortChange={handleSortChange}
+                onRowClick={(row) => navigate(ROUTES.PATIENT_PROFILE(row.id))}
+                onEdit={openEdit}
+                onDelete={setDeleteTarget}
+                pagination={
+                  data ? { page: data.page, pageCount: data.pageCount, onPageChange: setPage } : undefined
+                }
+              />
+            </div>
+          )}
         </Card.Body>
       </Card>
 

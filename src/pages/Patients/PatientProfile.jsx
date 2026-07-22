@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import Avatar from '@/components/ui/Avatar'
 import LoadingOverlay from '@/components/ui/LoadingOverlay'
 import PatientTimeline from '@/components/patients/PatientTimeline'
+import ErrorState from '@/components/common/ErrorState'
 import { useApi } from '@/hooks/useApi'
 import { PatientService } from '@/services/PatientService'
 import { formatDate } from '@/utils/dateFormatter'
@@ -26,17 +27,17 @@ export default function PatientProfile() {
   const navigate = useNavigate()
 
   const fetchPatient = useCallback(() => PatientService.get(id), [id])
-  const { data: patient, loading, error } = useApi(fetchPatient)
+  const { data: patient, loading, error, refetch } = useApi(fetchPatient)
 
   if (loading) return <LoadingOverlay label="Loading patient…" />
 
   if (error || !patient) {
     return (
-      <Card>
-        <Card.Body>
-          <p className="text-sm text-error">Unable to load this patient.</p>
-        </Card.Body>
-      </Card>
+      <ErrorState
+        title="Unable to load this patient"
+        message={error?.message || 'Please check the patient and try again.'}
+        onRetry={refetch}
+      />
     )
   }
 

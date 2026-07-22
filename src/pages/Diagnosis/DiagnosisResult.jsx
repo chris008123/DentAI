@@ -9,6 +9,7 @@ import CBCTPreviewPanel from '@/components/diagnosis/CBCTPreviewPanel'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import LoadingOverlay from '@/components/ui/LoadingOverlay'
+import ErrorState from '@/components/common/ErrorState'
 import { useApi } from '@/hooks/useApi'
 import { DiagnosisService } from '@/services/DiagnosisService'
 import { useToast } from '@/hooks/useToast'
@@ -21,7 +22,7 @@ export default function DiagnosisResult() {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const fetchResult = useCallback(() => DiagnosisService.getResult(sessionId), [sessionId])
-  const { data: result, loading, error } = useApi(fetchResult)
+  const { data: result, loading, error, refetch } = useApi(fetchResult)
 
   const handleGenerateTreatment = async () => {
     setIsGenerating(true)
@@ -38,11 +39,11 @@ export default function DiagnosisResult() {
 
   if (error || !result) {
     return (
-      <Card>
-        <Card.Body>
-          <p className="text-sm text-error">Unable to load this diagnosis result.</p>
-        </Card.Body>
-      </Card>
+      <ErrorState
+        title="Unable to load this diagnosis result"
+        message={error?.message || 'Please check the session and try again.'}
+        onRetry={refetch}
+      />
     )
   }
 

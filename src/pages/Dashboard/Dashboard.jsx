@@ -7,6 +7,7 @@ import RecentDiagnosesTable from '@/components/dashboard/RecentDiagnosesTable'
 import QuickActions from '@/components/dashboard/QuickActions'
 import RecentReports from '@/components/dashboard/RecentReports'
 import SystemStatus from '@/components/dashboard/SystemStatus'
+import ErrorState from '@/components/common/ErrorState'
 import { useApi } from '@/hooks/useApi'
 import { DashboardService } from '@/services/DashboardService'
 
@@ -20,7 +21,8 @@ export default function Dashboard() {
     () => DashboardService.getRecentDiagnoses({ page, pageSize: 5 }),
     [page]
   )
-  const { data: recentDiagnoses, loading: diagnosesLoading } = useApi(fetchRecentDiagnoses)
+  const { data: recentDiagnoses, loading: diagnosesLoading, error: diagnosesError, refetch: refetchDiagnoses } =
+    useApi(fetchRecentDiagnoses)
 
   return (
     <div>
@@ -49,17 +51,27 @@ export default function Dashboard() {
             <h3 className="text-sm font-medium text-text">Recent diagnoses</h3>
           </Card.Header>
           <Card.Body className="px-0 py-0">
-            <div className="px-2">
-              <RecentDiagnosesTable
-                diagnoses={recentDiagnoses?.items ?? []}
-                loading={diagnosesLoading}
-                pagination={
-                  recentDiagnoses
-                    ? { page: recentDiagnoses.page, pageCount: recentDiagnoses.pageCount, onPageChange: setPage }
-                    : undefined
-                }
-              />
-            </div>
+            {diagnosesError ? (
+              <div className="px-3 py-3">
+                <ErrorState
+                  title="Unable to load recent diagnoses"
+                  message={diagnosesError.message}
+                  onRetry={refetchDiagnoses}
+                />
+              </div>
+            ) : (
+              <div className="px-2">
+                <RecentDiagnosesTable
+                  diagnoses={recentDiagnoses?.items ?? []}
+                  loading={diagnosesLoading}
+                  pagination={
+                    recentDiagnoses
+                      ? { page: recentDiagnoses.page, pageCount: recentDiagnoses.pageCount, onPageChange: setPage }
+                      : undefined
+                  }
+                />
+              </div>
+            )}
           </Card.Body>
         </Card>
 

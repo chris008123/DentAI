@@ -4,6 +4,7 @@ import Card from '@/components/ui/Card'
 import SearchInput from '@/components/ui/SearchInput'
 import ReportTable from '@/components/reports/ReportTable'
 import ReportPreviewModal from '@/components/reports/ReportPreviewModal'
+import ErrorState from '@/components/common/ErrorState'
 import { useApi } from '@/hooks/useApi'
 import { useDebounce } from '@/hooks/useDebounce'
 import { ReportService } from '@/services/ReportService'
@@ -21,7 +22,7 @@ export default function Reports() {
     () => ReportService.list({ search: debouncedSearch, page, pageSize: 5 }),
     [debouncedSearch, page]
   )
-  const { data, loading } = useApi(fetchReports)
+  const { data, loading, error, refetch } = useApi(fetchReports)
 
   const fetchPreview = useCallback(() => (previewId ? ReportService.get(previewId) : Promise.resolve(null)), [
     previewId,
@@ -55,17 +56,23 @@ export default function Reports() {
           />
         </Card.Header>
         <Card.Body className="px-0 py-0">
-          <div className="px-2">
-            <ReportTable
-              reports={data?.items ?? []}
-              loading={loading}
-              onView={(row) => setPreviewId(row.id)}
-              onDownload={handleDownload}
-              pagination={
-                data ? { page: data.page, pageCount: data.pageCount, onPageChange: setPage } : undefined
-              }
-            />
-          </div>
+          {error ? (
+            <div className="px-3 py-3">
+              <ErrorState title="Unable to load reports" message={error.message} onRetry={refetch} />
+            </div>
+          ) : (
+            <div className="px-2">
+              <ReportTable
+                reports={data?.items ?? []}
+                loading={loading}
+                onView={(row) => setPreviewId(row.id)}
+                onDownload={handleDownload}
+                pagination={
+                  data ? { page: data.page, pageCount: data.pageCount, onPageChange: setPage } : undefined
+                }
+              />
+            </div>
+          )}
         </Card.Body>
       </Card>
 

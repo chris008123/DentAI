@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import Textarea from '@/components/ui/Textarea'
 import LoadingOverlay from '@/components/ui/LoadingOverlay'
 import TreatmentTimeline from '@/components/treatment/TreatmentTimeline'
+import ErrorState from '@/components/common/ErrorState'
 import { useApi } from '@/hooks/useApi'
 import { TreatmentService } from '@/services/TreatmentService'
 import { useToast } from '@/hooks/useToast'
@@ -17,7 +18,7 @@ export default function TreatmentPlan() {
   const toast = useToast()
 
   const fetchPlan = useCallback(() => TreatmentService.generate(sessionId), [sessionId])
-  const { data: plan, loading, error } = useApi(fetchPlan)
+  const { data: plan, loading, error, refetch } = useApi(fetchPlan)
 
   const handleSave = () => toast.success('Treatment plan saved to patient record.')
   const handleGenerateReport = () => toast.success('Report generation queued.')
@@ -29,11 +30,11 @@ export default function TreatmentPlan() {
 
   if (error || !plan) {
     return (
-      <Card>
-        <Card.Body>
-          <p className="text-sm text-error">Unable to generate a treatment plan for this session.</p>
-        </Card.Body>
-      </Card>
+      <ErrorState
+        title="Unable to generate a treatment plan"
+        message={error?.message || 'Please check the session and try again.'}
+        onRetry={refetch}
+      />
     )
   }
 
