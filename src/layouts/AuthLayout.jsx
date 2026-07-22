@@ -17,7 +17,9 @@ export default function AuthLayout() {
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15">
             <Stethoscope className="h-5.5 w-5.5 text-accent" />
           </div>
-          <span className="font-display text-lg font-semibold text-text">DentAI</span>
+          <span className="font-display text-lg font-semibold text-text">
+            Dent<span className="text-accent">AI</span>
+          </span>
         </div>
         <div className="rounded-card border border-border bg-surface p-6 shadow-lg">
           <Outlet />
