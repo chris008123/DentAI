@@ -9,6 +9,7 @@ export default function SearchInput({ value, onChange, placeholder = 'Search…'
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        aria-label={placeholder}
         className="h-10 w-full rounded-lg border border-border bg-surface pl-9 pr-3 text-sm text-text
           placeholder:text-text-secondary outline-none transition-colors focus:border-accent"
       />

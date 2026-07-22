@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Menu, Bell, User, Settings, LogOut } from 'lucide-react'
 import Breadcrumb from './Breadcrumb'
 import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
+import SearchInput from '@/components/ui/SearchInput'
 import { useAuth } from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/constants/routes'
@@ -9,6 +11,13 @@ import { ROUTES } from '@/constants/routes'
 export default function Navbar({ onOpenMobileSidebar }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [globalSearch, setGlobalSearch] = useState('')
+
+  const submitGlobalSearch = (e) => {
+    e.preventDefault()
+    if (!globalSearch.trim()) return
+    navigate(`${ROUTES.PATIENTS}?q=${encodeURIComponent(globalSearch.trim())}`)
+  }
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border px-4 lg:px-6">
@@ -23,13 +32,17 @@ export default function Navbar({ onOpenMobileSidebar }) {
         <Breadcrumb />
       </div>
 
+      <form onSubmit={submitGlobalSearch} className="hidden max-w-xs flex-1 md:block">
+        <SearchInput value={globalSearch} onChange={setGlobalSearch} placeholder="Search patients…" />
+      </form>
+
       <div className="flex items-center gap-3">
         <button
           aria-label="Notifications"
           className="relative rounded-lg p-2 text-text-secondary hover:bg-surface-hover hover:text-text"
         >
           <Bell className="h-4.5 w-4.5" />
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
+          <span aria-hidden="true" className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
         </button>
 
         <Dropdown

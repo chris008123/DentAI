@@ -1,14 +1,43 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 
 export default function Modal({ isOpen, onClose, title, children, footer, size = 'md' }) {
+  const dialogRef = useRef(null)
+  const lastFocusedRef = useRef(null)
+
   useEffect(() => {
     if (!isOpen) return
-    const onKeyDown = (e) => e.key === 'Escape' && onClose?.()
+
+    lastFocusedRef.current = document.activeElement
+    const focusable = dialogRef.current?.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    focusable?.[0]?.focus()
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose?.()
+        return
+      }
+      if (e.key === 'Tab' && focusable?.length) {
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
     document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      lastFocusedRef.current?.focus?.()
+    }
   }, [isOpen, onClose])
 
   const widths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl' }
@@ -26,6 +55,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
             onClick={onClose}
           />
           <motion.div
+            ref={dialogRef}
             initial={{ opacity: 0, y: 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}

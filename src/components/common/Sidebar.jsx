@@ -34,7 +34,7 @@ function SidebarContent({ isCollapsed, onNavigate }) {
         {!isCollapsed && <span className="font-display text-base font-semibold text-text">DentAI</span>}
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav aria-label="Primary" className="flex-1 space-y-1 px-3 py-4">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}

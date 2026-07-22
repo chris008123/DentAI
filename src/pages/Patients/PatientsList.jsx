@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import PageHeader from '@/components/common/PageHeader'
 import Card from '@/components/ui/Card'
@@ -17,8 +17,9 @@ import { ROUTES } from '@/constants/routes'
 export default function PatientsList() {
   const navigate = useNavigate()
   const toast = useToast()
+  const [searchParams] = useSearchParams()
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchParams.get('q') ?? '')
   const debouncedSearch = useDebounce(search, 300)
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState({ key: 'name', direction: 'asc' })

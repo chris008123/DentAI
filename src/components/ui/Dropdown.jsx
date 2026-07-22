@@ -10,8 +10,15 @@ export default function Dropdown({ trigger, children, align = 'right' }) {
     const onClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setIsOpen(false)
     }
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setIsOpen(false)
+    }
     document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside)
+      document.removeEventListener('keydown', onKeyDown)
+    }
   }, [isOpen])
 
   return (

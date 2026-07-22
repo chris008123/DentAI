@@ -12,6 +12,14 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200]
+          focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+      >
+        Skip to main content
+      </a>
+
       <Sidebar
         isCollapsed={isCollapsed}
         toggleCollapsed={toggleCollapsed}
@@ -22,7 +30,7 @@ export default function DashboardLayout() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Navbar onOpenMobileSidebar={toggleMobile} />
 
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" className="flex-1 overflow-y-auto">
           <motion.div
             key={pathname}
             initial={{ opacity: 0, y: 6 }}

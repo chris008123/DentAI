@@ -77,8 +77,18 @@ export default function Table({
                 <tr
                   key={row.id ?? i}
                   onClick={() => onRowClick?.(row)}
+                  onKeyDown={(e) => {
+                    if (onRowClick && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault()
+                      onRowClick(row)
+                    }
+                  }}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  role={onRowClick ? 'button' : undefined}
                   className={`border-b border-border/60 ${
-                    onRowClick ? 'cursor-pointer hover:bg-surface-hover' : ''
+                    onRowClick
+                      ? 'cursor-pointer hover:bg-surface-hover focus-visible:bg-surface-hover focus-visible:outline-none'
+                      : ''
                   }`}
                 >
                   {columns.map((col) => (
