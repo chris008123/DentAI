@@ -54,6 +54,7 @@ export const authApi = {
       return mockDelay({
         token: 'mock-jwt-token',
         user: { id: 'usr_new', name, email, role: 'dentist' },
+        needsEmailConfirmation: false,
       })
     }
 
@@ -64,11 +65,13 @@ export const authApi = {
     })
     if (error) throw error
 
-    // If email confirmation is enabled in your Supabase project, `session`
-    // will be null here until the user confirms — the caller should handle
-    // a null token by prompting them to check their email.
-    const user = await toAppUser(data.user)
-    return { token: data.session?.access_token ?? null, user }
+    // With email confirmation enabled (Supabase's default), `session` is
+    // null until the user clicks the confirmation link — they aren't
+    // actually signed in yet, so the caller should not treat this as a
+    // successful login.
+    const needsEmailConfirmation = !data.session
+    const user = needsEmailConfirmation ? null : await toAppUser(data.user)
+    return { token: data.session?.access_token ?? null, user, needsEmailConfirmation }
   },
 
   async forgotPassword(email) {

@@ -28,10 +28,12 @@ export const AuthService = {
 
   async register(payload) {
     try {
-      const { token, user } = await authApi.register(payload)
-      storage.set('token', token)
-      storage.set('user', user)
-      return { user }
+      const { token, user, needsEmailConfirmation } = await authApi.register(payload)
+      if (token && user) {
+        storage.set('token', token)
+        storage.set('user', user)
+      }
+      return { user, needsEmailConfirmation: Boolean(needsEmailConfirmation) }
     } catch (error) {
       throw normalizeError(error)
     }

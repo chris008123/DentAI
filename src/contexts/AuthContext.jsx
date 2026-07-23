@@ -56,9 +56,11 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (payload) => {
     setIsLoading(true)
     try {
-      const { user: newUser } = await AuthService.register(payload)
-      setUser(newUser)
-      return newUser
+      const { user: newUser, needsEmailConfirmation } = await AuthService.register(payload)
+      if (!needsEmailConfirmation) {
+        setUser(newUser)
+      }
+      return { user: newUser, needsEmailConfirmation }
     } finally {
       setIsLoading(false)
     }
