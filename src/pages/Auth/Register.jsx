@@ -2,12 +2,16 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate, Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MailCheck } from 'lucide-react'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/useToast'
+import { AuthService } from '@/services/AuthService'
 import { ROUTES } from '@/constants/routes'
+
+const RESEND_COOLDOWN_SECONDS = 30
 
 const registerSchema = z
   .object({
@@ -26,8 +30,11 @@ const registerSchema = z
 export default function Register() {
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
   const [formError, setFormError] = useState('')
   const [confirmationEmail, setConfirmationEmail] = useState(null)
+  const [isResending, setIsResending] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
 
   const {
     register,
@@ -44,11 +51,31 @@ export default function Register() {
         // user clicks the confirmation link — there's no dashboard to send
         // them to yet.
         setConfirmationEmail(values.email)
+        setResendCooldown(RESEND_COOLDOWN_SECONDS)
         return
       }
       navigate(ROUTES.DASHBOARD, { replace: true })
     } catch (err) {
       setFormError(err.message || 'Unable to create account. Please try again.')
+    }
+  }
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = setTimeout(() => setResendCooldown((s) => s - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [resendCooldown])
+
+  const handleResend = async () => {
+    setIsResending(true)
+    try {
+      await AuthService.resendConfirmation(confirmationEmail)
+      toast.success('Confirmation email resent.')
+      setResendCooldown(RESEND_COOLDOWN_SECONDS)
+    } catch (err) {
+      toast.error(err.message || 'Unable to resend the email. Please try again.')
+    } finally {
+      setIsResending(false)
     }
   }
 
@@ -63,7 +90,19 @@ export default function Register() {
           We've sent a confirmation link to <span className="font-medium text-text">{confirmationEmail}</span>.
           Click it to activate your account, then sign in.
         </p>
-        <Link to={ROUTES.LOGIN} className="mt-6 text-sm text-accent hover:underline">
+
+        <Button
+          variant="secondary"
+          size="sm"
+          className="mt-5"
+          onClick={handleResend}
+          isLoading={isResending}
+          disabled={resendCooldown > 0}
+        >
+          {resendCooldown > 0 ? `Resend email (${resendCooldown}s)` : 'Resend email'}
+        </Button>
+
+        <Link to={ROUTES.LOGIN} className="mt-4 text-sm text-accent hover:underline">
           Back to sign in
         </Link>
       </div>

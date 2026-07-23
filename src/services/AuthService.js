@@ -71,6 +71,17 @@ export const AuthService = {
     }
   },
 
+  async resendConfirmation(email) {
+    try {
+      return await authApi.resendConfirmation(email)
+    } catch (error) {
+      if (error.code === 'over_email_send_rate_limit' || error.status === 429) {
+        throw { message: "You've requested this recently — please wait a bit before trying again.", code: error.code }
+      }
+      throw normalizeError(error)
+    }
+  },
+
   getStoredUser() {
     return storage.get('user')
   },

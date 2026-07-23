@@ -105,4 +105,11 @@ export const authApi = {
     if (error) throw error
     return { success: true }
   },
+
+  async resendConfirmation(email) {
+    if (USE_MOCKS) return mockDelay({ success: true }, 300)
+    const { error } = await supabase.auth.resend({ type: 'signup', email })
+    if (error) throw error
+    return { success: true }
+  },
 }
