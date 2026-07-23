@@ -1,4 +1,4 @@
-import { createContext, useCallback, useMemo, useState } from 'react'
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
 import { AuthService } from '@/services/AuthService'
 
 export const AuthContext = createContext(null)
@@ -6,6 +6,41 @@ export const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => AuthService.getStoredUser())
   const [isLoading, setIsLoading] = useState(false)
+  // True until the initial session check (against Supabase, or the mock)
+  // resolves — lets ProtectedRoute avoid bouncing to /login before we
+  // actually know whether a session exists.
+  const [isInitializing, setIsInitializing] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    AuthService.getCurrentUser()
+      .then((verifiedUser) => {
+        if (isMounted) setUser(verifiedUser)
+      })
+      .catch(() => {
+        if (isMounted) setUser(null)
+      })
+      .finally(() => {
+        if (isMounted) setIsInitializing(false)
+      })
+
+    const unsubscribe = AuthService.onAuthStateChange((session) => {
+      if (!isMounted) return
+      if (!session) {
+        setUser(null)
+        return
+      }
+      AuthService.getCurrentUser()
+        .then((verifiedUser) => isMounted && setUser(verifiedUser))
+        .catch(() => isMounted && setUser(null))
+    })
+
+    return () => {
+      isMounted = false
+      unsubscribe()
+    }
+  }, [])
 
   const login = useCallback(async (credentials) => {
     setIsLoading(true)
@@ -29,8 +64,8 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const logout = useCallback(() => {
-    AuthService.logout()
+  const logout = useCallback(async () => {
+    await AuthService.logout()
     setUser(null)
   }, [])
 
@@ -39,11 +74,12 @@ export function AuthProvider({ children }) {
       user,
       isAuthenticated: Boolean(user),
       isLoading,
+      isInitializing,
       login,
       register,
       logout,
     }),
-    [user, isLoading, login, register, logout]
+    [user, isLoading, isInitializing, login, register, logout]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
